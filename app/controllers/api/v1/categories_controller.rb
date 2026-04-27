@@ -26,14 +26,22 @@ class Api::V1::CategoriesController < Api::V1::BaseController
     render :index
   rescue => e
     Rails.logger.error "CategoriesController#index error: #{e.message}"
-    render json: { error: "internal_server_error", message: "Error: #{e.message}" }, status: :internal_server_error
+    Rails.logger.error e.backtrace.join("\n")
+
+    render json: {
+      error: "internal_server_error",
+      message: "An unexpected error occurred"
+    }, status: :internal_server_error
   end
 
   def show
     render :show
   rescue => e
     Rails.logger.error "CategoriesController#show error: #{e.message}"
-    render json: { error: "internal_server_error", message: "Error: #{e.message}" }, status: :internal_server_error
+    render json: {
+      error: "internal_server_error",
+      message: "An unexpected error occurred"
+    }, status: :internal_server_error
   end
 
   def create
@@ -41,22 +49,16 @@ class Api::V1::CategoriesController < Api::V1::BaseController
 
     @category = family.categories.new(category_params)
 
-    # Auto-assign color if not provided
     @category.color ||= Category::COLORS.sample
-
-    # Auto-assign icon if not provided
     @category.lucide_icon ||= Category.suggested_icon(@category.name)
 
-    # Validate parent belongs to same family
-    if @category.parent_id.present?
-      unless family.categories.exists?(id: @category.parent_id)
-        render json: {
-          error: "validation_failed",
-          message: "Parent category not found in this family",
-          errors: [ "Parent category not found in this family" ]
-        }, status: :unprocessable_entity
-        return
-      end
+    if @category.parent_id.present? && !family.categories.exists?(id: @category.parent_id)
+      render json: {
+        error: "validation_failed",
+        message: "Parent category not found in this family",
+        errors: [ "Parent category not found in this family" ]
+      }, status: :unprocessable_entity
+      return
     end
 
     if @category.save
@@ -71,11 +73,13 @@ class Api::V1::CategoriesController < Api::V1::BaseController
     end
   rescue => e
     Rails.logger.error "CategoriesController#create error: #{e.message}"
-    render json: { error: "internal_server_error", message: "Error: #{e.message}" }, status: :internal_server_error
+    render json: {
+      error: "internal_server_error",
+      message: "An unexpected error occurred"
+    }, status: :internal_server_error
   end
 
   def update
-    # Validate parent belongs to same family if parent_id is being changed
     if params[:category]&.key?(:parent_id) && params[:category][:parent_id].present?
       family = current_resource_owner.family
       unless family.categories.exists?(id: params[:category][:parent_id])
@@ -100,7 +104,10 @@ class Api::V1::CategoriesController < Api::V1::BaseController
     end
   rescue => e
     Rails.logger.error "CategoriesController#update error: #{e.message}"
-    render json: { error: "internal_server_error", message: "Error: #{e.message}" }, status: :internal_server_error
+    render json: {
+      error: "internal_server_error",
+      message: "An unexpected error occurred"
+    }, status: :internal_server_error
   end
 
   def destroy
@@ -108,7 +115,10 @@ class Api::V1::CategoriesController < Api::V1::BaseController
     head :no_content
   rescue => e
     Rails.logger.error "CategoriesController#destroy error: #{e.message}"
-    render json: { error: "internal_server_error", message: "Error: #{e.message}" }, status: :internal_server_error
+    render json: {
+      error: "internal_server_error",
+      message: "An unexpected error occurred"
+    }, status: :internal_server_error
   end
 
   private

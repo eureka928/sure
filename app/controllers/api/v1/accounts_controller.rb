@@ -21,7 +21,10 @@ class Api::V1::AccountsController < Api::V1::BaseController
     render :index
   rescue => e
     Rails.logger.error "AccountsController#index error: #{e.message}"
-    render json: { error: "internal_server_error", message: "Error: #{e.message}" }, status: :internal_server_error
+    render json: {
+      error: "internal_server_error",
+      message: "An unexpected error occurred"
+    }, status: :internal_server_error
   end
 
   def show
@@ -49,7 +52,10 @@ class Api::V1::AccountsController < Api::V1::BaseController
     render json: { error: "validation_failed", message: e.message }, status: :unprocessable_entity
   rescue => e
     Rails.logger.error "AccountsController#create error: #{e.message}"
-    render json: { error: "internal_server_error", message: "Error: #{e.message}" }, status: :internal_server_error
+    render json: {
+      error: "internal_server_error",
+      message: "An unexpected error occurred"
+    }, status: :internal_server_error
   end
 
   def update
@@ -78,7 +84,10 @@ class Api::V1::AccountsController < Api::V1::BaseController
     end
   rescue => e
     Rails.logger.error "AccountsController#update error: #{e.message}"
-    render json: { error: "internal_server_error", message: "Error: #{e.message}" }, status: :internal_server_error
+    render json: {
+      error: "internal_server_error",
+      message: "An unexpected error occurred"
+    }, status: :internal_server_error
   end
 
   def destroy
@@ -95,7 +104,10 @@ class Api::V1::AccountsController < Api::V1::BaseController
     render json: { message: "Account deleted successfully" }, status: :ok
   rescue => e
     Rails.logger.error "AccountsController#destroy error: #{e.message}"
-    render json: { error: "internal_server_error", message: "Error: #{e.message}" }, status: :internal_server_error
+    render json: {
+      error: "internal_server_error",
+      message: "An unexpected error occurred"
+    }, status: :internal_server_error
   end
 
   private
@@ -117,6 +129,12 @@ class Api::V1::AccountsController < Api::V1::BaseController
 
     def safe_per_page_param
       per_page = params[:per_page].to_i
-      per_page.between?(1, 100) ? per_page : 25
+
+      case per_page
+      when 1..100
+        per_page
+      else
+        25
+      end
     end
 end
